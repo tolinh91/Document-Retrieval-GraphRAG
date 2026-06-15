@@ -1,6 +1,6 @@
 # GraphRAG in Commercial Contract Review
 
-This repository contains all of the code mentioned in [GraphRAG in Commercial Contract Review](https://medium.com/@edward.sandoval.2000/graphrag-in-commercial-contract-review-7d4a6caa6eb5).
+This repository contains all of the code using GraphRAG technique to retrieve information from pdf file.
 
 
 ## Contract Review - GraphRAG-based approach
@@ -19,7 +19,7 @@ The four steps are:
 4. Building a Q&A Agent handling complex questions (Semantic Kernel, LLM, Neo4j)
 
 # What Do You Need?
-- Obtain an [OpenAI token](https://platform.openai.com/api-keys). It will be used to:
+- Obtain an [OpenAI token](O). It will be used to:
     - Build the Q&A agent with Semantic Kernel
     - Extract specific information from contracts (parties,key dates,jurisdiction)
     - Generate embeddings for a small number of contract excerpts
@@ -32,8 +32,8 @@ The four steps are:
 # Set Up
 - Clone the repo
 ``` 
-git clone https://github.com/neo4j-product-examples/graphrag-contract-review.git
-cd graphrag-contract-review
+git clone hhttps://github.com/tolinh91/Document-Retrieval-GraphRAG.git
+cd Document-Retrieval-GraphRAG
 ```
 - Create a Python Virtual environment
 ```
