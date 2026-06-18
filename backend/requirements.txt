@@ -1,7 +1,10 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
-torch==2.10.0+cpu
-torchvision==0.25.0+cpu
-torchaudio==2.10.0+cpu
+torch==2.10.0+cpu; sys_platform == "linux"
+torch==2.10.0; sys_platform == "darwin"
+torchvision==0.25.0+cpu; sys_platform == "linux"
+torchvision==0.25.0; sys_platform == "darwin"
+torchaudio==2.10.0+cpu; sys_platform == "linux"
+torchaudio==2.10.0; sys_platform == "darwin"
 asyncio==4.0.0
 boto3==1.43.16
 botocore==1.43.16
