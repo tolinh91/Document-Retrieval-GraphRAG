@@ -1,258 +1,373 @@
-# GraphRAG in Commercial Contract Review
-
-This repository contains all of the code using GraphRAG technique to retrieve information from pdf file.
-
-
-## Contract Review - GraphRAG-based approach
-The GraphRAG-based approach described in the blog post goes beyond the traditional chunk-based RAG, focusing instead on targeted information extraction from the contracts (LLM + Prompt) to create a knowledge graph representation (LLM + Neo4J), a simple set of data retrieval functions (in Python using Cypher, Text to Cypher, Vector Search retrievers) and ultimately a Q&A agent (Semantic Kernel) capable of handling complex questions
-
-The diagram below illustrates the approach
-
-![4-stage-approach](./images/4-stage-approach%20.png)
-The 4-stage GraphRAG approach: From question-based extraction -> knowledge graph model -> GraphRAG retrieval -> Q&A Agent
+# Knowledge Graph Builder
+![Python](https://img.shields.io/badge/Python-yellow)
+![FastAPI](https://img.shields.io/badge/FastAPI-green)
+![React](https://img.shields.io/badge/React-blue)
 
 
-The four steps are:
-1. Extracting Relevant Information from Contracts (LLM + Contract)
-2. Storing information extracted into a Knowledge Graph (Neo4j)
-3. Developing simple KG Data Retrieval Functions (Python)
-4. Building a Q&A Agent handling complex questions (Semantic Kernel, LLM, Neo4j)
+Transform unstructured data (PDFs, DOCs, TXTs, YouTube videos, web pages, etc.) into a structured Knowledge Graph stored in Neo4j using the power of Large Language Models (LLMs) and the LangChain framework.
 
-# What Do You Need?
-- Obtain an [OpenAI token](O). It will be used to:
-    - Build the Q&A agent with Semantic Kernel
-    - Extract specific information from contracts (parties,key dates,jurisdiction)
-    - Generate embeddings for a small number of contract excerpts
-    - Power a Text2Cypher data retrieval function
-- Python 3.9+ and a Python virtual environment
-- Access to a Neo4j database
-    - Docker, Aura or Self-hosted
-    - GenAI plugin running on the database (This is automatically available in Aura)
+This application allows you to upload files from various sources (local machine, GCS, S3 bucket, or web sources), choose your preferred LLM model, and generate a Knowledge Graph.
 
-# Set Up
-- Clone the repo
-``` 
-git clone hhttps://github.com/tolinh91/Document-Retrieval-GraphRAG.git
-cd Document-Retrieval-GraphRAG
+## Getting Started
+
+### **Prerequisites**
+- **Python 3.12 or higher** (for local/separate backend deployment)
+- Neo4j Database **5.23 or later** with APOC installed.
+  - Neo4j 5.23 is required because the backend uses the Cypher variable-scope subquery syntax (`CALL (variable) { ... }`), which is not supported by earlier Neo4j 5.x releases such as 5.20.
+  - **Neo4j Aura** databases (including the free tier) are supported.
+  - If using **Neo4j Desktop**, you will need to deploy the backend and frontend separately (docker-compose is not supported).
+
+#### **Backend Setup**
+1. Create a `.env` file in the `backend` folder by copying `backend/example.env`.
+2. Pre-configure user credentials in the `.env` file to bypass the login dialog:
+   ```bash
+   NEO4J_URI=<your-neo4j-uri>
+   NEO4J_USERNAME=<your-username>
+   NEO4J_PASSWORD=<your-password>
+   NEO4J_DATABASE=<your-database-name>
+   ```
+3. Run:
+   ```bash
+   cd backend
+   python3.12 -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+   uvicorn score:app --reload
+   ```
+
+
+## Key Features
+
+### **Knowledge Graph Creation**
+- Seamlessly transform unstructured data into structured Knowledge Graphs using advanced LLMs.
+- Extract nodes, relationships, and their properties to create structured graphs.
+
+### **Schema Support**
+- Use a custom schema or existing schemas configured in the settings to generate graphs.
+
+### **Graph Visualization**
+- View graphs for specific or multiple data sources simultaneously in **Neo4j Bloom**.
+
+### **Chat with Data**
+- Interact with your data in the Neo4j database through conversational queries.
+- Retrieve metadata about the source of responses to your queries.
+- For a dedicated chat interface, use the standalone chat application with the **[/chat-only](/chat-only) route.**
+
+### **LLMs Supported**
+1. OpenAI
+2. Gemini
+3. Diffbot
+4. Azure OpenAI (dev deployed version)
+5. Anthropic (dev deployed version)
+6. Fireworks (dev deployed version)
+7. Groq (dev deployed version)
+8. Amazon Bedrock (dev deployed version)
+9. Ollama (dev deployed version)
+10. Deepseek (dev deployed version)
+11. Other OpenAI-compatible base URL models (dev deployed version)
+
+
+### **Token Usage Tracking**
+- Easily monitor and track your LLM token usage for each user and database connection.
+- Enable this feature by setting the `TRACK_USER_USAGE` environment variable to `true` in your backend configuration.
+- View your daily and monthly token consumption and limits, helping you manage usage and avoid overages.
+- You can check your remaining token limits at any time using the provided API endpoint.
+
+### **Embedding Model Selection**
+- Choose from a variety of embedding models to generate vector embeddings for your data. This can be configured from the frontend in **Graph Settings > Processing Configuration > Select Embedding Model**.
+- Supported model providers include OpenAI, Gemini, Amazon Titan, and Sentence Transformers.
+- Your selected embedding model is saved to your user profile when `TRACK_USER_USAGE` is enabled.
+
+#### **Local Configuration**
+You have two ways to configure the embedding model locally:
+
+1.  **With User Tracking (`TRACK_USER_USAGE=true`):**
+    - Set `TRACK_USER_USAGE` to `true` in your backend `.env` file.
+    - Provide your token tracking database credentials (`TOKEN_TRACKER_DB_URI`, `TOKEN_TRACKER_DB_USERNAME`, etc.).
+    - Select your desired embedding model from the frontend. Your selection will be saved and automatically used in subsequent sessions.
+
+2.  **Without User Tracking (`TRACK_USER_USAGE=false`):**
+    - Set `TRACK_USER_USAGE` to `false`.
+    - Specify the embedding model and provider directly in your backend `.env` file using `EMBEDDING_MODEL` and `EMBEDDING_PROVIDER`.
+    - If these variables are not set, the application defaults to a Sentence Transformer model.
+    - In this mode, the embedding model cannot be changed from the frontend.
+
+
+---
+
+## Getting Started
+
+### **Prerequisites**
+- Neo4j Database **5.23 or later** with APOC installed.
+  - Neo4j 5.23 is required because the backend uses the Cypher variable-scope subquery syntax (`CALL (variable) { ... }`), which is not supported by earlier Neo4j 5.x releases such as 5.20.
+  - **Neo4j Aura** databases (including the free tier) are supported.
+  - If using **Neo4j Desktop**, you will need to deploy the backend and frontend separately (docker-compose is not supported).
+
+---
+
+## Deployment Options
+
+### **Local Deployment**
+
+#### Using Docker-Compose
+Run the application using the default `docker-compose` configuration.
+
+1. **Supported LLM Models:**  
+   By default, only OpenAI and Diffbot are enabled. Gemini requires additional GCP configurations.  
+   Use the `VITE_LLM_MODELS_PROD` variable to configure the models you need. Example:
+   ```bash
+   VITE_LLM_MODELS_PROD="gemini_3.5_flash,openai_gpt_5.4_mini,diffbot,anthropic_claude_4.5_haiku"
+   ```
+
+2. **Anthropic Models:**
+   Use the latest Claude model in your config:
+   ```bash
+   LLM_MODEL_CONFIG_ANTHROPIC_CLAUDE_4_7_OPUS="claude-opus-4-7,anthropic_api_key"
+   ```
+
+3. **Input Sources:**  
+   By default, the following sources are enabled: `local`, `YouTube`, `Wikipedia`, `AWS S3`, and `web`.  
+   To add Google Cloud Storage (GCS) integration, include `gcs` and your Google client ID:
+   ```bash
+   VITE_REACT_APP_SOURCES="local,youtube,wiki,s3,gcs,web"
+   VITE_GOOGLE_CLIENT_ID="your-google-client-id"
+   ```
+
+#### Chat Modes
+Configure chat modes using the `VITE_CHAT_MODES` variable:
+- By default, all modes are enabled: `vector`, `graph_vector`, `graph`, `fulltext`, `graph_vector_fulltext`, `entity_vector`, and `global_vector`. 
+- To specify specific modes, update the variable. For example:
+  ```bash
+  VITE_CHAT_MODES="vector,graph"
+  ```
+
+---
+
+### **Running Backend and Frontend Separately**
+
+For development, you can run the backend and frontend independently.
+
+#### **Frontend Setup**
+1. Create a `.env` file in the `frontend` folder by copying `frontend/example.env`.
+2. Update environment variables as needed.
+3. Run:
+   ```bash
+   cd frontend
+  yarn
+  yarn run dev
+   ```
+
+#### **Backend Setup**
+1. Create a `.env` file in the `backend` folder by copying `backend/example.env`.
+2. Pre-configure user credentials in the `.env` file to bypass the login dialog:
+   ```bash
+   NEO4J_URI=<your-neo4j-uri>
+   NEO4J_USERNAME=<your-username>
+   NEO4J_PASSWORD=<your-password>
+   NEO4J_DATABASE=<your-database-name>
+   ```
+3. Run:
+   ```bash
+   cd backend
+  python -m venv envName
+  source envName/bin/activate
+  pip install -r requirements.txt
+  uvicorn score:app --reload
+   ```
+
+---
+
+### **Cloud Deployment**
+
+Deploy the application on **Google Cloud Platform** using the following commands:
+
+#### **Frontend Deployment**
+```bash
+gcloud run deploy dev-frontend \
+  --source . \
+  --region us-central1 \
+  --allow-unauthenticated
 ```
-- Create a Python Virtual environment
-```
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-- Run a local Neo4j instance (Optional)
-We will use Docker  
 
-But you can use an Aura or self-hosted Neo4j instance.
-If you do so,  you can skip this step. Just make sure you have URL, user name and password to access your Neo4j database
-
-```
-docker run \
-    --restart always --env NEO4J_AUTH=neo4j/yourpassword \
-    --publish=7474:7474 --publish=7687:7687 \
-    --env NEO4J_PLUGINS='["genai","apoc"]'  neo4j:latest
+#### **Backend Deployment**
+```bash
+gcloud run deploy dev-backend \
+  --set-env-vars "OPENAI_API_KEY=<your-openai-api-key>" \
+  --set-env-vars "DIFFBOT_API_KEY=<your-diffbot-api-key>" \
+  --set-env-vars "NEO4J_URI=<your-neo4j-uri>" \
+  --set-env-vars "NEO4J_USERNAME=<your-username>" \
+  --set-env-vars "NEO4J_PASSWORD=<your-password>" \
+  --source . \
+  --region us-central1 \
+  --allow-unauthenticated
 ```
 
-Make sure you replace **yourpassword** with a password to access this database
+---
 
-## Set up some environment vars
-If you are using Neo4j Aura or self-hosted instance
-```
-export NEO4J_URI=<URI to your db>
-export NEO4J_USERNAME=<your_username>
-```
-If you are using Docker, you need to specify URI or Username ONLY if different from the default
+## For local llms (Ollama)
+1. Pull the docker image of ollama
+   ```bash
+   docker pull ollama/ollama
+   ```
+2. Run the ollama docker image
+   ```bash
+   docker run -d -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+   ```
+3. Execute any llm model, e.g., llama3
+   ```bash
+   docker exec -it ollama ollama run llama3
+   ```
+4. Configure env variable in docker compose.
+   ```env
+   LLM_MODEL_CONFIG_ollama_<model_name>
+   # example
+   LLM_MODEL_CONFIG_ollama_llama3=${LLM_MODEL_CONFIG_ollama_llama3-llama3,http://host.docker.internal:11434}
+   ```
+5. Configure the backend API url
+   ```env
+   VITE_BACKEND_API_URL=${VITE_BACKEND_API_URL-backendurl}
+   ```
+6. Open the application in browser and select the ollama model for the extraction.
+7. Enjoy Graph Building.
+---
 
-You need to specify the password to access the database
-```
-export NEO4J_PASSWORD=<your_password>
-```
+## Usage
+1. Connect to a Neo4j Aura Instance, which can be either AURA DS or AURA DB, by passing the URI and password through the backend environment, filling in the login dialog, or dragging and dropping the Neo4j credentials file.
+2. To differentiate, we have added different icons. For AURA DB, there is a database icon, and for AURA DS, there is a scientific molecule icon right under the Neo4j Connection details label.
+3. Choose your source from a list of unstructured sources to create a graph.
+4. Change the LLM (if required) from the dropdown, which will be used to generate the graph.
+5. Optionally, define the schema (nodes and relationship labels) in the entity graph extraction settings.
+6. Either select multiple files to 'Generate Graph', or all the files in 'New' status will be processed for graph creation.
+7. View the graph for individual files using 'View' in the grid, or select one or more files and 'Preview Graph'.
+8. Ask questions related to the processed/completed sources to the chatbot. Also, get detailed information about your answers generated by the LLM.
 
-Set your OpenAI API  Key 
-```
-export OPENAI_API_KEY=sk-....
-```
+---
 
+## [ENV][env-sheet]
+| Env Variable Name       | Mandatory/Optional | Default Value | Description                                                                                      |
+|------------------------ |-------------------|---------------|--------------------------------------------------------------------------------------------------|
+|                        |                   |               |                                                                                                  |
+| **BACKEND ENV**         |                   |               |                                                                                                  |
+| OPENAI_API_KEY          | Optional          |               | An OpenAI Key is required to use OpenAI LLM model to authenticate and track requests             |
+| DIFFBOT_API_KEY         | Mandatory         |               | API key is required to use Diffbot's NLP service to extract entities and relationships from unstructured data |
+| BUCKET_UPLOAD_FILE      | Optional          |               | Bucket name to store uploaded file on GCS                                                        |
+| BUCKET_FAILED_FILE      | Optional          |               | Bucket name to store failed file on GCS while extraction                                         |
+| USER_AGENT              | Optional          | llm-graph-builder | Name of the user agent to track Neo4j database activity                                      |
+| ENABLE_USER_AGENT       | Optional          | true          | Boolean value to enable/disable Neo4j user agent                                                 |
+| DUPLICATE_TEXT_DISTANCE | Optional          | 5             | This value is used to find distance for all node pairs in the graph and is calculated based on node properties |
+| DUPLICATE_SCORE_VALUE   | Optional          | 0.97          | Node score value to match duplicate nodes                                                        |
+| EFFECTIVE_SEARCH_RATIO  | Optional          | 1             | Ratio used for effective search calculations                                                     |
+| GRAPH_CLEANUP_MODEL     | Optional          | openai_gpt_5_mini | Model name to clean up graph in post processing                                            |
+| MAX_TOKEN_CHUNK_SIZE    | Optional          | 10000         | Maximum token size to process file content                                                       |
+| YOUTUBE_TRANSCRIPT_PROXY| Mandatory         |               | Proxy key to process YouTube videos for getting transcripts                                      |
+| IS_EMBEDDING           | Optional           | true          | Flag to enable text embedding                                                                    |
+| KNN_MIN_SCORE          | Optional           | 0.8           | Minimum score for KNN algorithm                                                                  |
+| GCP_LOG_METRICS_ENABLED| Optional           | False         | Flag to enable Google Cloud logs                                                                 |
+| NEO4J_URI              | Optional           | neo4j://database:7687 | URI for Neo4j database                                                                  |
+| NEO4J_USERNAME         | Optional           | neo4j         | Username for Neo4j database                                                                      |
+| NEO4J_PASSWORD         | Optional           | password      | Password for Neo4j database                                                                      |                                               |
+| GCS_FILE_CACHE         | Optional           | False         | If set to True, will save files to process into GCS. If False, will save files locally           |                   |
+| ENTITY_EMBEDDING       | Optional           | False         | If set to True, it will add embeddings for each entity in the database                           |
+| LLM_MODEL_CONFIG_ollama_<model_name> | Optional |           | Set ollama config as model_name,model_local_url for local deployments                            |
+|                        |                   |               |                                                                                                  |
+| **FRONTEND ENV**        |                   |               |                                                                                                  |
+| VITE_BLOOM_URL         | Mandatory          | [Bloom URL][bloom-url] | URL for Bloom visualization                                |
+| VITE_REACT_APP_SOURCES | Mandatory          | local,youtube,wiki,s3 | List of input sources that will be available                                 |
+| VITE_CHAT_MODES        | Mandatory          | vector,graph+vector,graph,hybrid | Chat modes available for Q&A                                |
+| VITE_ENV               | Mandatory          | DEV or PROD   | Environment variable for the app                                                                 |
+| VITE_LLM_MODELS        | Optional           | openai_gpt_5_mini,gemini_flash_latest,anthropic_claude_4.5_haiku | Supported models for the application |
+| VITE_BACKEND_API_URL   | Optional           | [localhost][backend-url] | URL for backend API                                        |
+| VITE_TIME_PER_PAGE     | Optional           | 50            | Time per page for processing                                                                     |
+| VITE_CHUNK_SIZE        | Optional           | 5242880       | Size of each chunk of file for upload                                                            |
+| VITE_GOOGLE_CLIENT_ID  | Optional           |               | Client ID for Google authentication                                                              |
+| VITE_LLM_MODELS_PROD   | Optional           | openai_gpt_5_mini,gemini_flash_latest,anthropic_claude_4.5_haiku | To distinguish models based on environment (PROD or DEV) |
+| VITE_AUTH0_CLIENT_ID   | Mandatory if you are enabling Authentication otherwise it is optional |  | Okta OAuth Client ID for authentication |
+| VITE_AUTH0_DOMAIN      | Mandatory if you are enabling Authentication otherwise it is optional |  | Okta OAuth Client Domain                                  |
+| VITE_SKIP_AUTH         | Optional           | true          | Flag to skip authentication                                                                      |
+| VITE_CHUNK_OVERLAP     | Optional           | 20            | Variable to configure chunk overlap                                                              |
+| VITE_TOKENS_PER_CHUNK  | Optional           | 100           | Variable to configure tokens count per chunk. This gives flexibility for users who may require different chunk sizes for various tokenization tasks |
+| VITE_CHUNK_TO_COMBINE  | Optional           | 1             | Variable to configure number of chunks to combine for parallel processing                        |
 
-# STEP 1: Extracting Relevant Information from Contracts (LLM + Contract)
-In the [data](./data/input) folder, you will find 3 real commercial contracts in PDF format
+### Example Environment Files
 
-These contracts were taken from the publicly available [Contract Understanding Atticus Dataset](https://www.atticusprojectai.org/cuad)
+Refer to the example environment files for additional variables and configuration:
 
-Our first step is to run a program that will prompt a ```OpenAI gpt-4o``` model to answer 40+ questions for each contract.
+- [Backend example.env](https://github.com/neo4j-labs/llm-graph-builder/blob/main/backend/example.env)
+- [Frontend example.env](https://github.com/neo4j-labs/llm-graph-builder/blob/main/frontend/example.env)
 
-The prompt will include instructions to store the extracted information in JSON format, under [data/output](./data/output)
+---
 
-The full prompt can be found [here](./prompts/contract_extraction_prompt.txt)
+## Cloud Build Deployment
 
-## From PDF Contract to JSON
-Run the following command
-```
-python convert-pdf-to-json.py
-```
-Each PDF will take around 60s to process
+You can deploy the backend and the frontend to Google Cloud Run using Cloud Build, either manually or via automated triggers.
 
-You can check out any of the [json files generated under the data/output folder](./data/output/)
+### **Automated Deployment (Recommended)**
+1. **Connect your repository to Google Cloud Build:**
+   - In the Google Cloud Console, go to Cloud Build > Triggers.
+   - Create a new trigger and select your repository.
+   - Set the trigger to run on push to your desired branch (`main`, `staging`, or `dev`).
+   - Cloud Build will automatically use the `cloudbuild.yaml` file in the root of your repository.
 
-In case the LLM generates invalid JSON, you can find the infomration returned by the LLM under [data/debug](./data/debug/) folder
+2. **Configure Substitutions and Secrets:**
+   - In the trigger settings, add required substitutions (e.g., `_OPENAI_API_KEY`, `_DIFFBOT_API_KEY`, etc.) as environment variables or use Secret Manager for sensitive data.
 
-# STEP 2: Storing information extracted into a Knowledge Graph (Neo4j)
-With each contract as a JSON file, the next step is to create a Knowledge Graph in Neo4j
+3. **Push your code:**
+   - When you push to the configured branch, Cloud Build will build and deploy your backend (and optionally frontend) to Cloud Run using the steps defined in `cloudbuild.yaml`.
 
-Before we can do that, we need to design a Knowledge Graph Data model suitable to represent the information extracted from the contracts
+### **Manual Deployment**
+1. **Set up Google Cloud SDK and authenticate:**
+   ```bash
+   gcloud auth login
+   gcloud config set project <YOUR_PROJECT_ID>
+   ```
 
-## A Suitable KG Data Model for our contracts
+2. **Run Cloud Build manually:**
+   ```bash
+   gcloud builds submit --config cloudbuild.yaml \
+     --substitutions=_REGION=us-central1,_REPO=cloud-run-repo,_OPENAI_API_KEY=<your-openai-key>,_DIFFBOT_API_KEY=<your-diffbot-key>,_BUCKET_UPLOAD_FILE=<your-bucket>,_BUCKET_FAILED_FILE=<your-bucket>,_PROJECT_ID=<your-project-id>,_GCS_FILE_CACHE=False,_TRACK_USER_USAGE=False,_TOKEN_TRACKER_DB_URI=...,_TOKEN_TRACKER_DB_USERNAME=...,_TOKEN_TRACKER_DB_PASSWORD=...,_TOKEN_TRACKER_DB_DATABASE=...,_DEFAULT_DIFFBOT_CHAT_MODEL=...,_YOUTUBE_TRANSCRIPT_PROXY=...,_EMBEDDING_MODEL=...,
+       _EMBEDDING_PROVIDER=...,_BEDROCK_EMBEDDING_MODEL_KEY=...,_LLM_MODEL_CONFIG_OPENAI_GPT_5_2=...,_LLM_MODEL_CONFIG_OPENAI_GPT_5_MINI=...,_LLM_MODEL_CONFIG_GEMINI_2_5_FLASH=...,_LLM_MODEL_CONFIG_GEMINI_2_5_PRO=...,_LLM_MODEL_CONFIG_DIFFBOT=...,_LLM_MODEL_CONFIG_GROQ_LLAMA3_1_8B=...,_LLM_MODEL_CONFIG_ANTHROPIC_CLAUDE_4_5_SONNET=...,_LLM_MODEL_CONFIG_ANTHROPIC_CLAUDE_4_5_HAIKU=...,_LLM_MODEL_CONFIG_LLAMA4_MAVERICK=...,_LLM_MODEL_CONFIG_FIREWORKS_QWEN3_6=...,_LLM_MODEL_CONFIG_FIREWORKS_GPT_OSS=...,_LLM_MODEL_CONFIG_FIREWORKS_DEEPSEEK_V3=...,_LLM_MODEL_CONFIG_BEDROCK_NOVA_MICRO_V1=...,_LLM_MODEL_CONFIG_BEDROCK_NOVA_LITE_V1=...,_LLM_MODEL_CONFIG_BEDROCK_NOVA_PRO_V1=...,_LLM_MODEL_CONFIG_OLLAMA_LLAMA3=...
+   ```
+   - Replace the values in angle brackets with your actual configuration and secrets.
+   - `LLM_MODEL_CONFIG_FIREWORKS_QWEN3_6` is the app-facing config key for the `fireworks_qwen3_6` model option and should map to the Fireworks serverless slug `accounts/fireworks/models/qwen3p6-plus`.
+   - You can omit or add substitutions as needed for your deployment.
 
-In our case, a suitable KG data model includes our main entities: Agreements (contracts), their clauses, the Parties( organizations) to the contracts and the relationships amongst all of them
+3. **Monitor the build:**
+   - The build and deployment process will be visible in the Cloud Build console.
 
-![A Suitable Knowledge Graph Model](./images/schema.png)
+4. **Access your deployed service:**
+   - After deployment, your backend will be available at the Cloud Run service URL shown in the Cloud Console.
 
-## Some useful properties for each of the main nodes and relationships
-```
-Agreement {agreement_type: STRING, contract_id: INTEGER,
-          effective_date: STRING,
-          renewal_term: STRING, name: STRING}
-ContractClause {name: STRING, type: STRING}
-ClauseType {name: STRING}
-Country {name: STRING}
-Excerpt {text: STRING}
-Organization {name: STRING}
+---
 
-Relationship properties:
-IS_PARTY_TO {role: STRING}
-GOVERNED_BY_LAW {state: STRING}
-HAS_CLAUSE {type: STRING}
-INCORPORATED_IN {state: STRING}
-```
+**Note:**  
+- The `cloudbuild.yaml` file supports multiple environments (`main`, `staging`, `dev`) based on the branch name.
+- The frontend build and deployment steps are commented out by default. Uncomment them in `cloudbuild.yaml` if you wish to deploy the frontend as well.
 
-Now, let's create a Knowledge Graph from the JSON files in ```./data/output/*.json```
+For more details, see the comments in [`cloudbuild.yaml`](cloudbuild.yaml).
 
-```
- python create_graph_from_json.py
-```
-The ```create_graph_from_json``` Python script is relatively straightforward to understand. 
+---
 
-The main area of complexity is the ```CREATE_GRAPH_STATEMENT```. This [CYPHER statement](./create_graph_from_json.py#L7) that takes a Contract JSON and creates the relevant nodes and relationships for that contract in Neo4j. 
+## Links
 
-You can check out the original [blog post](https://medium.com/@edward.sandoval.2000/graphrag-in-commercial-contract-review-7d4a6caa6eb5) for a full breakdown of this CYPHER statement
+[LLM Knowledge Graph Builder Application][app-link]
 
+[Neo4j Workspace][neo4j-workspace]
 
-You will see output similar to 
-```
-Index excerptTextIndex created.
-Index agreementTypeTextIndex created.
-Index clauseTypeNameTextIndex created.
-Index clauseNameTextIndex created.
-Index organizationNameTextIndex created.
-Creating index: contractIdIndex
-Generating Embeddings for Contract Excerpts...
-```
+## Reference
 
-The generation of embeddings takes about 1 minute(s) to complete
+[Demo of application][demo-video]
 
-After the Python script finishes:
-- Each Contract JSON has been uploaded to Neo4J Knowledge Graph
-- Key properties on the Agreement, ClauseTypes, Organization (Party) have fulltext indexes
-- A new property Excerpt.embedding was generated by using ```genai.vector.encode(excerpt.text)```
-    - This calls out OpenAI Text Embedding model ```text-embedding-3-small```
-- A new vector index for Excerpt.embedding is created
+## Contact
+For any inquiries or support, feel free to raise [GitHub Issues][github-issues]
 
+[backend-url]: http://localhost:8000
+[env-sheet]: https://docs.google.com/spreadsheets/d/1DBg3m3hz0PCZNqIjyYJsYALzdWwMlLah706Xvxt62Tk/edit?gid=184339012#gid=184339012
+[env-vars]: https://docs.google.com/spreadsheets/d/1DBg3m3hz0PCZNqIjyYJsYALzdWwMlLah706Xvxt62Tk/edit?gid=0#gid=0
+[app-link]: https://llm-graph-builder.neo4jlabs.com/
+[neo4j-workspace]: https://workspace-preview.neo4j.io/workspace/query
+[demo-video]: https://www.youtube.com/watch?v=LlNy5VmV290
+[github-issues]: https://github.com/neo4j-labs/llm-graph-builder/issues
+[bloom-url]: https://workspace-preview.neo4j.io/workspace/explore?connectURL={CONNECT_URL}&search=Show+me+a+graph&featureGenAISuggestions=true&featureGenAISuggestionsInternal=true
+[langchain-endpoint]: https://api.smith.langchain.com
 
-The total number of Excerpt embeddings for the 3 contracts is between 30-40 (depending on how many relevant excerpts were detected by the LLM on Step 1)
-
-A visual representation of one of the contracts in the Knowledge Graph is
-
-![A visual representation of a single Contract as a Knowledge Graph](./images/contract_graph.png)
-
-If you are using Docker to run your Neo4j instance, you can use the [browser tool](http://localhost:7474/browser/) to confirm your data was loaded
-
-If you are using Aura or a self-hosted Neo4j instance, you can use the Query tool from the [new Neo4j console](https://console-preview.neo4j.io/tools/query). You may need to log into your Aura instance or manually add a connection to your self-hosted database
-
-
-# STEP 3: Developing simple KG Data Retrieval Functions (Python)
-With the contracts now represented in a Knowledge Graph, the next step is to build some basic data retrieval functions. 
-
-These functions are fundamental building blocks that enable us to build a Q&A agent in the next section
-
-Let's define a few basic data retrieval functions:
-
-- Retrieve basic details about a contract (given a contract ID)
-- Find contracts involving a specific organization (given a partial organization name)
-- Find contracts that DO NOT contain a particular clause type
-- Find contracts contain a specific type of clause
-- Find contracts based on the semantic similarity with the text (Excerpt) in a clause (e.g., contracts mentioning the use of "prohibited items")
-- Run a natural language query against all contracts in the database. For example, an aggregation query that counts "how many contracts in the database ".
-
-You are encouraged to explore [ContractPlugin.py](./ContractPlugin.py) for a definition and [ContractService.py](./ContractService.py) for the implementation of each of the data retrieval functions
-
-The original [blog post](https://medium.com/@edward.sandoval.2000/graphrag-in-commercial-contract-review-7d4a6caa6eb5) provides a walk through of three different styles of data retrieval functions
-- Cypher-based data retrieval functions -
-    -  ```get_contract(self, contract_id: int) -> Annotated[Agreement, "A contract"]:```  
-    -  ```get_contracts_without_clause(self, clause_type: ClauseType) -> List[Agreement]:```
-    - Both of these data retrieval are built around simple CYPHER statements
-- Vector-Search + Graph traversal data retrieval function  
-    - ```get_contracts_similar_text(self, clause_text: str) -> Annotated[List[Agreement], "A list of contracts with similar text in one of their clauses"]:```
-    - This function leverages [Neo4j GraphRAG package](https://github.com/neo4j/neo4j-graphrag-python)
-    - It also relies on a vector index defined on "Exceprt" nodes
-- Text-to-Cypher (T2C) data retrieval function
-    -  ```answer_aggregation_question(self, user_question: str) -> Annotated[str, "An answer to user_question"]:```
-    - This function leverages [Neo4j GraphRAG package](https://github.com/neo4j/neo4j-graphrag-python)
-    - It uses OpenAI ```gpt-4o``` to generate CYPHER statement that will be executed against the database
-
-
-
-# STEP 4: Building a Q&A Agent handling complex questions (Semantic Kernel, LLM, Neo4j)
-
-Armed with our Knowledge Graph data retrieval functions, we are ready to build an agent grounded by GraphRAG!
-
-We will use Microsoft Semantic Kernel, a framework that allows developers to integrate LLM function calling with existing APIs and data retrieval functions The framework uses a concept called ```Plugins``` to represent specific functionality that the kernel can perform. In our case, all of our data retrieval functions defined in the "ContractPlugin" can be used by the LLM to answer questions about contracts in the Neo4J database
-In addition, Semantic Kernel uses the concept of ```Memory``` to keep all interactions between user and agent. This includes details of any functions called/executed (with all input and output data)
-
-An extremely simple Terminal-based agent can be implemented with a few lines of code. 
-
-Run
-```
-python test_agent.py
-```
-You can try variations of the following questions to exercise the different data retrieval functions
-
-- Get me contracts with Price Restrictions but without Insurance 
-    - See the logging INFO and notice how this requires calling 2 of our data retrieval functions
-- Get more details about this contract
-- Get me contracts for AT&T 
-- Get me contracts for Mount Knowledge
-- Get me contract 3
-- Get me contracts that mention 100 units of product
-- What's the average number of excerpts per contract?
-
-You can type ```**exit``` to finish your session with the agent
-
-You can see the full code of the [test_agent.py](./test_agent.py)
-You will find functions that exercise each of the retrieval functions (commented out)
-
-For a nicer-looking UI, you can try on streamlit
-```
-streamlit run app.py
-```
-The browser shows
-
-![Agent in Streamlit](./images/streamlit_view.png)
-
-
-# Acknowledgements - Contract Understanding Atticus Dataset
-
-This demo was made possible thanks to the invaluable resource provided by the Contract Understanding Atticus Dataset (CUAD) v1. 
-
-
-A dataset curated and maintained by The Atticus Project.  CUAD's extensive corpus of over 13,000 labels in 510 commercial legal contracts, manually annotated under the supervision of experienced lawyers, has been instrumental in identifying critical legal clauses for contract review, particularly in corporate transactions such as mergers and acquisitions.
-
-We recognize and appreciate CUAD's contribution to advancing NLP research and development in the field of legal contract analysis.
-
-
-# Future Improvements
-In this demo, we didn't fine-tune the LLM to enhace its basic capabilities to identify relevant excerpts.
-
-The CUAD does provide the labelled clauses/excerpts that could be used to fine-tune a model to recognize the presence/absence of these clauses
-
-
+## Happy Graph Building!
