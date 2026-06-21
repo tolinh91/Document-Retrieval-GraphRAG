@@ -82,9 +82,8 @@ const SideNav: React.FC<SideNavProps> = ({
 
     if (!isLargeDesktop && position === 'left') {
       dataSourceItems.push(
-        <SpotlightTarget id='dropzone' indicatorVariant='point' indicatorPlacement='middle-right'>
+        <SpotlightTarget key='local' id='dropzone' indicatorVariant='point' indicatorPlacement='middle-right'>
           <SideNavigation.Item
-            key='local'
             icon={
               <TooltipWrapper tooltip='Local Files' placement='right'>
                 <DropZoneForSmallLayouts />

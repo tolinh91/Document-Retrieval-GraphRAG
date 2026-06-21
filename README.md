@@ -138,7 +138,7 @@ Configure chat modes using the `VITE_CHAT_MODES` variable:
 - By default, all modes are enabled: `vector`, `graph_vector`, `graph`, `fulltext`, `graph_vector_fulltext`, `entity_vector`, and `global_vector`. 
 - To specify specific modes, update the variable. For example:
   ```bash
-  VITE_CHAT_MODES="vector,graph"
+  VITE_CHAT_MODES="graph"
   ```
 
 ---
